@@ -9,7 +9,7 @@ import numpy as np
 
 from ... import functions as fn
 from ... import icons
-from ...Qt import QtCore, QtWidgets
+from ...Qt import QtCore, QtWidgets, QtGui
 from ...WidgetGroup import WidgetGroup
 from ...widgets.FileDialog import FileDialog
 from ..AxisItem import AxisItem
@@ -184,8 +184,35 @@ class PlotItem(GraphicsWidget):
         self.axes = {}
         self.setAxisItems(axisItems)
 
-        self.titleLabel = LabelItem('', size='11pt', parent=self)
-        self.layout.addItem(self.titleLabel, 0, 1)
+        # == Original
+        # self.titleLabel = LabelItem('', size='11pt', parent=self)
+        # self.layout.addItem(self.titleLabel, 0, 1)
+
+        # == Modified
+        self.titleProxy = QtWidgets.QGraphicsProxyWidget()
+        self.titleLabel = QtWidgets.QLabel('')
+        self.titleLabel.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        titleColor = fn.mkColor('d').name(QtGui.QColor.NameFormat.HexArgb)
+        self.titleLabel.setStyleSheet(
+            f'background: transparent; color: {titleColor};'
+        )
+        self.titleLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.titleLabel.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Ignored,
+            self.titleLabel.sizePolicy().verticalPolicy()
+        )
+        self.titleProxy.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Ignored,
+            self.titleProxy.sizePolicy().verticalPolicy()
+        )
+        self.titleProxy.setWidget(self.titleLabel)
+        # Enforce the outer layout rather than the label's sizing
+        self.titleLabel.setMinimumSize(0, 0)
+        # self.titleLabel.setPreferredSize(0, 0)
+        self.titleProxy.setMinimumSize(0, 0)
+        self.titleProxy.setPreferredSize(0, 0)
+        self.layout.addItem(self.titleProxy, 0, 1)
+
         self.setTitle(None)  ## hide
 
         for i in range(4):
